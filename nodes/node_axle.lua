@@ -3,8 +3,9 @@ local S = digtron.S
 minetest.register_node("digtron:axle", {
 	description = S("Digtron Rotation Axle"),
 	_doc_items_longdesc = digtron.doc.axle_longdesc,
-    _doc_items_usagehelp = digtron.doc.axle_usagehelp,
+	_doc_items_usagehelp = digtron.doc.axle_usagehelp,
 	groups = {cracky = 3, oddly_breakable_by_hand=3, digtron = 1},
+	on_place = digtron.place_6dir,
 	drop = "digtron:axle",
 	sounds = digtron.metal_sounds,
 	paramtype = "light",
