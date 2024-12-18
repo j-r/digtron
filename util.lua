@@ -21,6 +21,11 @@ digtron.find_new_pos = function(pos, facing)
 	return vector.add(pos, dir)
 end
 
+digtron.place_6dir = function(itemstack, placer, pointed_thing)
+	local param2 = placer and placer:is_player() and minetest.dir_to_facedir(placer:get_look_dir(), true)
+	return minetest.item_place(itemstack, placer, pointed_thing, param2)
+end
+
 local facedir_to_down_dir_table = {
 	[0]={x=0, y=-1, z=0},
 	{x=0, y=0, z=-1},

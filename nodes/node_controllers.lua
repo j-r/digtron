@@ -22,8 +22,9 @@ local use_texture_alpha = minetest.features.use_texture_alpha_string_modes and "
 minetest.register_node("digtron:controller", {
 	description = S("Digtron Control Module"),
 	_doc_items_longdesc = digtron.doc.controller_longdesc,
-    _doc_items_usagehelp = digtron.doc.controller_usagehelp,
+	_doc_items_usagehelp = digtron.doc.controller_usagehelp,
 	groups = {cracky = 3, oddly_breakable_by_hand = 3, digtron = 1},
+	on_place = digtron.place_6dir,
 	drop = "digtron:controller",
 	sounds = digtron.metal_sounds,
 	paramtype = "light",
@@ -194,10 +195,11 @@ end
 minetest.register_node("digtron:auto_controller", {
 	description = S("Digtron Automatic Control Module"),
 	_doc_items_longdesc = digtron.doc.auto_controller_longdesc,
-    _doc_items_usagehelp = digtron.doc.auto_controller_usagehelp,
+	_doc_items_usagehelp = digtron.doc.auto_controller_usagehelp,
 	--Don't set a _digtron_formspec for this node_def.
 	--Auto-controller has special formspec handling, while active it has no formspec and right-clicking interrupts it.
 	groups = {cracky = 3, oddly_breakable_by_hand = 3, digtron = 1},
+	on_place = digtron.place_6dir,
 	drop = "digtron:auto_controller",
 	sounds = digtron.metal_sounds,
 	use_texture_alpha = use_texture_alpha,
@@ -326,8 +328,9 @@ minetest.register_node("digtron:auto_controller", {
 minetest.register_node("digtron:pusher", {
 	description = S("Digtron Pusher Module"),
 	_doc_items_longdesc = digtron.doc.pusher_longdesc,
-    _doc_items_usagehelp = digtron.doc.pusher_usagehelp,
+	_doc_items_usagehelp = digtron.doc.pusher_usagehelp,
 	groups = {cracky = 3, oddly_breakable_by_hand=3, digtron = 1},
+	on_place = digtron.place_6dir,
 	drop = "digtron:pusher",
 	sounds = digtron.metal_sounds,
 	use_texture_alpha = use_texture_alpha,

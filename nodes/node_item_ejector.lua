@@ -110,9 +110,10 @@ end
 minetest.register_node("digtron:inventory_ejector", {
 	description = S("Digtron Inventory Ejector"),
 	_doc_items_longdesc = digtron.doc.inventory_ejector_longdesc,
-    _doc_items_usagehelp = digtron.doc.inventory_ejector_usagehelp,
+	_doc_items_usagehelp = digtron.doc.inventory_ejector_usagehelp,
 	_digtron_formspec = ejector_formspec,
 	groups = {cracky = 3,  oddly_breakable_by_hand=3, digtron = 9, tubedevice = 1},
+	on_place = digtron.place_6dir,
 	tiles = {"digtron_plate.png", "digtron_plate.png", "digtron_plate.png", "digtron_plate.png", "digtron_plate.png^digtron_output.png", "digtron_plate.png^digtron_output_back.png"},
 	drawtype = "nodebox",
 	sounds = digtron.metal_sounds,

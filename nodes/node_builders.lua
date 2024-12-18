@@ -212,6 +212,7 @@ minetest.register_node("digtron:builder", {
 	_doc_items_longdesc = digtron.doc.builder_longdesc,
 	_doc_items_usagehelp = digtron.doc.builder_usagehelp,
 	groups = {cracky = 3,  oddly_breakable_by_hand=3, digtron = 4},
+	on_place = digtron.place_6dir,
 	drop = "digtron:builder",
 	sounds = digtron.metal_sounds,
 	paramtype = "light",
