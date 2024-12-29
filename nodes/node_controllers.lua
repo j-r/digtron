@@ -374,7 +374,7 @@ minetest.register_node("digtron:auto_controller", {
 			meta:set_int("cycles", math.floor(cycles))
 			if sender:is_player() and cycles > 0 then
 				meta:set_string("triggering_player", sender:get_player_name())
-				if fields.execute then
+				if fields.execute or fields.key_enter_field == "cycles" then
 					auto_cycle(pos)
 				end
 			end
