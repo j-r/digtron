@@ -182,21 +182,6 @@ local function move_layout_digging(layout, pos, dir,
 	-- if the player is standing within the array or next to it, move him too.
 	local move_player = is_player_inside_layout(layout, clicker)
 
-	-- damage the weak flesh
-	if digtron.config.damage_hp > 0 and layout.diggers ~= nil then
-		for _, location in pairs(layout.diggers) do
-			local dropped = {}
-			local func = get_nodedef_callback_at(nil, location.pos, "damage_creatures")
-			if func then
-				func(clicker, location.pos, controlling_axis, dropped)
-			end
-			for _, item in pairs(dropped) do
-				local itemstack = to_itemstack(item, "damage_creatures", core.get_node(location.pos))
-				table.insert(items_dropped, itemstack)
-			end
-		end
-	end
-
 	--move the array
 	layout:move_layout_image(dir)
 	if not layout:write_layout_image(clicker) then
@@ -205,6 +190,21 @@ local function move_layout_digging(layout, pos, dir,
 	local newpos = vector.add(pos, dir)
 	if move_player then
 		add_object_pos(clicker, dir)
+	end
+
+	-- damage the weak flesh
+	if digtron.config.damage_hp > 0 and layout.diggers ~= nil then
+		for _, location in pairs(layout.diggers) do
+			local dropped = {}
+			local func = get_nodedef_callback_at("digger", location.pos, "damage_creatures")
+			if func then
+				func(clicker, location.pos, controlling_axis, dropped)
+			end
+			for _, item in pairs(dropped) do
+				local itemstack = to_itemstack(item, "damage_creatures", core.get_node(location.pos))
+				table.insert(items_dropped, itemstack)
+			end
+		end
 	end
 
 	-- store or drop the products of the digger heads
