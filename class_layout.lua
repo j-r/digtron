@@ -316,6 +316,7 @@ end
 -- Translation
 
 function digtron.DigtronLayout.move_layout_image(self, dir)
+	self.controller = vector.add(self.controller, dir)
 	self.extents_max = vector.add(self.extents_max, dir)
 	self.extents_min = vector.add(self.extents_min, dir)
 

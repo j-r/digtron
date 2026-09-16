@@ -125,9 +125,6 @@ if has_doc_mod then
 		"tooltip[help;" .. S("Show documentation about this block").. "]"
 end
 
--- Mutual recursion (well, not really, calls are mediated by core.after).
-local auto_cycle_dig, auto_cycle_emerge
-
 local running_msg = S("Rightclick to stop.") -- used in two different places
 
 local function get_auto_cycle_status(cycle, running, additional_info)
@@ -141,17 +138,9 @@ local function check_continue(pos, newpos, return_code, cycle_decrement)
 	local cycle = meta:get_int("cycles")
 	local period = meta:get_int("period")
 	if vector.equals(pos, newpos) then
-		if return_code == 1 then
-			-- Neighboring IGNORE nodes. Might be digtron nodes, therefore retry
-			-- after emerging area around digtron (but discard current cycle).
-			-- TODO: replace this by being smarter when building the layout.
-			auto_cycle_emerge(newpos, period)
-			return false, get_auto_cycle_status(cycle, true, "\n" .. S("Loading nodes..."))
-		else
-			-- Halt with error.
-			meta:set_string("formspec", auto_formspec)
-			return false, get_auto_cycle_status(cycle, false)
-		end
+		-- Halt with error.
+		meta:set_string("formspec", auto_formspec)
+		return false, get_auto_cycle_status(cycle, false)
 	end
 
 	if cycle_decrement then
@@ -169,19 +158,19 @@ local function check_continue(pos, newpos, return_code, cycle_decrement)
 	end
 end
 
+-- Mutual recursion (well, not really, calls are mediated by core.after).
+local auto_cycle_dig, auto_cycle_emerge
+
 -- The outermost blocks of a chunk may get overwritten with stale data when a neighboring
 -- chunk is generated. Therefore force generating any neighboring chunk before the digtron
 -- enters the outermost block. (Symbol `auto_cycle_emerge` declared local above.)
-auto_cycle_emerge = function(pos)
+auto_cycle_emerge = function(layout)
 	-- subtract time to emerge from cycle period
 	local start_time = core.get_us_time()
 
+	local pos = layout.controller
 	local meta = core.get_meta(pos)
 	local period = meta:get_int("period")
-
-	-- TODO: find way to avoid building the layout again just to determine its size.
-	local player = core.get_player_by_name(meta:get_string("triggering_player"))
-	local layout = digtron.DigtronLayout.create(pos, player)
 
 	-- Make sure all neighboring chunks are generated when a digtron node touches the
 	-- inside of the outermost block of the current chunk.
@@ -225,13 +214,15 @@ auto_cycle_dig = function(pos)
 		return
 	end
 
+	local layout = digtron.load_layout(pos, player)
+
 	local slope = meta:get_int("slope")
 	local node = core.get_node(pos)
 	local controlling_coordinate = digtron.get_controlling_coordinate(pos, node.param2)
 	if meta:get_string("lateral_done") ~= "true" and slope ~= 0
 			and (pos[controlling_coordinate] + meta:get_int("offset")) % slope == 0 then
 		-- Do a lateral dig cycle.
-		local newpos, status, return_code = digtron.execute_downward_dig_cycle(pos, player)
+		local newpos, status, return_code = digtron.execute_downward_dig_cycle_layout(layout, player)
 		meta = core.get_meta(newpos)
 
 		--  Don't update the "cycles" count, lateral cycles don't count towards that.
@@ -241,11 +232,11 @@ auto_cycle_dig = function(pos)
 		if cont then
 			-- Force non lateral dig cycle.
 			meta:set_string("lateral_done", "true")
-			auto_cycle_emerge(newpos)
+			auto_cycle_emerge(layout)
 		end
 	else
 		-- Do a normal dig cycle.
-		local newpos, status, return_code = digtron.execute_dig_cycle(pos, player)
+		local newpos, status, return_code = digtron.execute_dig_cycle_layout(layout, player)
 		meta = core.get_meta(newpos)
 
 		local cont, cycle_status = check_continue(pos, newpos, return_code, true)
@@ -254,7 +245,7 @@ auto_cycle_dig = function(pos)
 		if cont then
 			-- Enable checking for lateral dig again on next cycle.
 			meta:set_string("lateral_done", "")
-			auto_cycle_emerge(newpos)
+			auto_cycle_emerge(layout)
 		end
 	end
 end
