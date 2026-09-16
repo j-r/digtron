@@ -59,6 +59,27 @@ local function append_node_drop_stacks(name, list)
 	return list
 end
 
+-- Discover full digtron layout, loading additional blocks if necessary.
+digtron.load_layout = function(pos, clicker)
+	local layout
+	local size = 0
+	repeat
+		if layout then
+			-- Layout is touching ignore node. Try loading more blocks around
+			-- discovered layout.
+			size = #layout.all
+			local extent = core.MAP_BLOCKSIZE
+			local min = vector.subtract(layout.extents_min, extent)
+			local max = vector.add(layout.extents_max, extent)
+			core.load_area(min, max)
+		end
+		layout = digtron.DigtronLayout.create(pos, clicker)
+		-- Terminate if not touching IGNORE, discovered size already exceeds
+		-- configured max size, or no additional digtron nodes could be loaded.
+	until not layout.ignore_touching or #layout.all > digtron.config.size_limit or #layout.all <= size
+	return layout
+end
+
 digtron.mark_diggable = function(pos, nodes_dug, player)
 	-- mark the node as dug, if the player provided would have been able to dig it.
 	-- Don't *actually* dig the node yet, though, because if we dig a node with sand over it the sand will start falling

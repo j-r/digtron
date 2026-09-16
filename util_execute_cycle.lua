@@ -187,7 +187,7 @@ local function move_layout_digging(layout, pos, dir,
 	if not layout:write_layout_image(clicker) then
 		return pos, "unrecoverable write_layout_image error", 1
 	end
-	local newpos = vector.add(pos, dir)
+
 	if move_player then
 		add_object_pos(clicker, dir)
 	end
@@ -207,13 +207,13 @@ local function move_layout_digging(layout, pos, dir,
 		end
 	end
 
-	-- store or drop the products of the digger heads
+	-- store or drop (at old controller pos) the products of the digger heads
 	for _, itemstack in pairs(items_dropped) do
 		digtron.place_in_inventory(itemstack, layout.inventories, pos)
 	end
 	digtron.award_item_dug(items_dropped, clicker) -- Achievements mod hook
 
-	return newpos, "", 0 -- success
+	return layout.controller, "", 0 -- success
 end
 
 local function burn_fuel(layout, pos, fuel_burning, fuel_cost, particle_systems, exhaust)
@@ -285,13 +285,16 @@ end
 -- 7 - insufficient builder materials in inventory
 -- 8 - size/node limit reached
 digtron.execute_dig_cycle = function(pos, clicker)
+	digtron.execute_dig_cycle_layout(digtron.load_layout(pos, clicker), clicker)
+end
+
+digtron.execute_dig_cycle_layout = function(layout, clicker)
+	local pos = layout.controller
 	local meta = minetest.get_meta(pos)
 	local facing = minetest.get_node(pos).param2
 	local dir = minetest.facedir_to_dir(facing)
 	local fuel_burning = meta:get_float("fuel_burning") -- get amount of burned fuel left over from last cycle
 	local status_text = S("Heat remaining in controller furnace: @1", math.floor(math.max(0, fuel_burning)))
-
-	local layout = digtron.DigtronLayout.create(pos, clicker)
 
 	local return_code
 	status_text, return_code = neighbour_test(layout, status_text, dir)
@@ -505,7 +508,11 @@ end
 
 -- Simplified version of the above method that only moves, and doesn't execute diggers or builders.
 digtron.execute_move_cycle = function(pos, clicker)
-	local layout = digtron.DigtronLayout.create(pos, clicker)
+	digtron.execute_move_cycle_layout(digtron.load_layout(pos, clicker), clicker)
+end
+
+digtron.execute_move_cycle_layout = function(layout, clicker)
+	local pos = layout.controller
 
 	local status_text = ""
 	local return_code
@@ -539,11 +546,10 @@ digtron.execute_move_cycle = function(pos, clicker)
 		return pos, "unrecoverable write_layout_image error", 1
 	end
 
-	pos = vector.add(pos, dir)
 	if move_player then
 		add_object_pos(clicker, dir)
 	end
-	return pos, "", 0
+	return layout.controller, "", 0
 end
 
 -- Simplified version of the dig cycle that moves laterally relative to the controller's orientation ("downward")
@@ -555,6 +561,11 @@ end
 -- 3 - obstructed by undiggable node
 -- 4 - insufficient fuel
 digtron.execute_downward_dig_cycle = function(pos, clicker)
+	digtron.execute_downward_dig_cycle_layout(digtron.load_layout(pos, clicker), clicker)
+end
+
+digtron.execute_downward_dig_cycle_layout = function(layout, clicker)
+	local pos = layout.controller
 	local meta = minetest.get_meta(pos)
 	local facing = minetest.get_node(pos).param2
 	local dir = digtron.facedir_to_down_dir(facing)
@@ -562,8 +573,6 @@ digtron.execute_downward_dig_cycle = function(pos, clicker)
 	local status_text = S("Heat remaining in controller furnace: @1", math.floor(math.max(0, fuel_burning)))
 	local return_code
 	local exhaust = meta:get_int("on_coal")
-
-	local layout = digtron.DigtronLayout.create(pos, clicker)
 
 	status_text, return_code = neighbour_test(layout, status_text, dir)
 	if return_code ~= 0 then
